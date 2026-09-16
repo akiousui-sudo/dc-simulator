@@ -1,8 +1,11 @@
 import {benefitImpacts,benefitSources} from './benefits.mjs';
 import {defaults,healthRates,contributionTypes,activeContributions,contributionLimits,simulate} from './engine.mjs';
+import {fieldKeys,initialInputs,storageKeys,loadInputs,saveInputs} from './input-state.mjs';
 const form=document.querySelector('#inputs'),$=id=>document.getElementById(id);
 const fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString('ja-JP'):'—',yen=n=>`${fmt(n)}円`;
-const fieldKeys=Object.keys(defaults).filter(k=>k!=='month');
+const getStorage=()=>window.localStorage;
+const storedPreset=loadInputs(getStorage,storageKeys.preset),storedCurrent=loadInputs(getStorage,storageKeys.current);
+let preset=storedPreset.values||{...initialInputs},hasPreset=!!storedPreset.values;
 form.elements.type.innerHTML=Object.entries(contributionTypes).map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
 form.elements.prefecture.innerHTML=Object.keys(healthRates).map(p=>`<option>${p}</option>`).join('');
 const typeDescriptions={
@@ -12,7 +15,29 @@ const typeDescriptions={
  ab:'会社が給与とは別に拠出し、本人も給与の一部をDCに振り分けます。給与の減額は本人の選択制分だけです。'
 };
 function read(){return activeContributions({...defaults,...Object.fromEntries(fieldKeys.map(k=>[k,typeof defaults[k]==='number'?(form.elements[k].value.trim()===''?NaN:Number(form.elements[k].value)):form.elements[k].value]))});}
-function reset(){for(const k of fieldKeys)form.elements[k].value=defaults[k];render();}
+function rawInputs(){return Object.fromEntries(fieldKeys.map(k=>[k,form.elements[k].value]));}
+function applyInputs(values){for(const k of fieldKeys)form.elements[k].value=values[k];render();}
+function showStatus(message){$('input-status').textContent=message;$('input-status-bottom').textContent=message;}
+function presetDescription(){ $('default-description').textContent=hasPreset?'「デフォルトに戻す」で、ご自身が保存した設定に戻ります。':'デフォルトは未設定です。「デフォルトに戻す」でアプリ共通の初期値に戻ります。'; }
+function persistCurrent(){
+ const saved=saveInputs(getStorage,storageKeys.current,rawInputs());
+ showStatus(saved?'入力内容をこのブラウザに保存しました。':'このブラウザに保存できません。入力はこの画面を開いている間だけ保持されます。');
+ return saved;
+}
+function reset(){applyInputs(preset);if(persistCurrent())showStatus(hasPreset?'保存したデフォルトに戻しました。':'アプリ共通の初期値に戻しました。');}
+function saveDefault(){
+ if(simulate(read()).errors.length){showStatus('入力エラーを修正してから、デフォルトに設定してください。');return;}
+ const values=rawInputs();
+ if(!saveInputs(getStorage,storageKeys.preset,values)){showStatus('デフォルトを保存できませんでした。ブラウザの保存設定を確認してください。');return;}
+ preset=values;hasPreset=true;presetDescription();
+ if(persistCurrent())showStatus('現在の入力を、ご自身のデフォルトとして保存しました。');
+}
+function updateInputs(event){
+ const name=event.target.name;
+ if(name==='personal')form.elements.matching.value=form.elements.personal.value;
+ if(name==='matching')form.elements.personal.value=form.elements.matching.value;
+ render();persistCurrent();
+}
 function afterLabel(x){return x.type==='am'?'マッチング拠出あり':x.type==='a'?'Aタイプ（会社拠出のみ）':'選択制拠出あり';}
 function render(){
  const x=read(),l=contributionLimits(x),matching=x.type==='am',selective=['b','ab'].includes(x.type);
@@ -66,8 +91,13 @@ $('benefit-sources').innerHTML=benefitSources.map(([t,u])=>`<li><a href="${u}" t
 const sources=[['厚生労働省：企業型DCの上限・2026年12月改正','https://www.mhlw.go.jp/stf/nenkin_shikumi_015.html'],['国税庁：2026年分の給与所得・所得税の計算','https://www.nta.go.jp/publication/pamph/koho/kurashi/html/02_1.htm'],['国税庁：基礎控除','https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm'],['全国健康保険協会：2026年度の都道府県別料率・介護・支援金','https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures/r08/'],['厚生労働省：2026年度の雇用保険料率','https://www.mhlw.go.jp/content/001692566.pdf'],['日本年金機構：報酬比例部分','https://www.nenkin.go.jp/service/yougo/hagyo/hoshuhirei.html'],['厚生労働省：厚生年金の標準報酬上限改定','https://www.mhlw.go.jp/stf/nenkin_shikumi_002.html'],['日本年金機構：随時改定','https://www.nenkin.go.jp/service/kounen/hokenryo/hoshu/20150515-02.html'],['墨田区：2027年度住民税の給与所得控除','https://www.city.sumida.lg.jp/kurashi/zeikin/zeisei_kaisei/r9/kyuuyosyotoku.html'],['forche：公開されている制度設計','https://forche401k.com/cn-forche/plan/'],['DC推進協会：SBIいろどり年金の旧公開資料（2025年5月版）','https://deco-pa.com/pdf/202505SBIgoannai.pdf']];
 sources.push(['国税庁：小規模企業共済等掛金控除（マッチング掛金）','https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1135.htm'],['厚生労働省：マッチング拠出の額の制限撤廃（2026年4月）','https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/nenkin/nenkin/kyoshutsu/2025kaisei.html'],['SBI証券：選択制とマッチングの給与・社会保険の違い','https://ad401k.sbisec.co.jp/corporate/howto/selectivedc/']);
 $('sources').innerHTML=sources.map(([t,u])=>`<li><a href="${u}" target="_blank" rel="noopener noreferrer">${t}</a></li>`).join('');
-form.addEventListener('input',render);form.addEventListener('change',render);
+form.addEventListener('input',updateInputs);form.addEventListener('change',updateInputs);
 form.addEventListener('submit',e=>e.preventDefault());
 form.addEventListener('reset',e=>{e.preventDefault();reset()});
-$('contribution-slider').addEventListener('input',e=>{form.elements[form.elements.type.value==='am'?'matching':'personal'].value=e.target.value;render()});
-reset();
+$('save-default').addEventListener('click',saveDefault);
+$('contribution-slider').addEventListener('input',e=>{form.elements.personal.value=e.target.value;form.elements.matching.value=e.target.value;});
+presetDescription();
+applyInputs(storedCurrent.values||preset);
+if([storedCurrent.status,storedPreset.status].includes('unavailable'))showStatus('このブラウザに保存できません。入力はこの画面を開いている間だけ保持されます。');
+else if([storedCurrent.status,storedPreset.status].includes('invalid'))showStatus('保存データの一部を読み込めませんでした。入力内容をご確認ください。');
+else showStatus(storedCurrent.values?'前回の入力内容を復元しました。':'入力内容は自動でこのブラウザに保存されます。');
