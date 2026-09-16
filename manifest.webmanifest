@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "企業型DC シミュレーション",
+  "short_name": "企業型DC",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#153c60",
+  "background_color": "#f4f7fb",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="企業型DC">
+  <defs><linearGradient id="navy" x2="1" y2="1"><stop stop-color="#204f78"/><stop offset="1" stop-color="#102d49"/></linearGradient></defs>
+  <path fill="url(#navy)" d="M0 0h512v512H0z"/>
+  <path fill="#ffffff" transform="translate(-12 0)" fill-rule="evenodd" d="M119 164h65c49 0 79 29 79 77s-30 77-79 77h-65V164zm42 39v76h21c26 0 39-13 39-38s-13-38-39-38h-21z"/>
+  <path fill="#ffffff" transform="translate(4 0)" d="M404 190l-29 28c-9-10-19-15-33-15-24 0-40 16-40 38s16 38 40 38c14 0 25-6 34-16l29 27c-16 19-38 30-64 30-47 0-82-33-82-79s35-79 82-79c26 0 48 10 63 28z"/>
+  <rect x="153" y="346" width="38" height="14" rx="7" fill="#e7bc75"/>
+  <rect x="209" y="346" width="38" height="14" rx="7" fill="#e7bc75"/>
+  <rect x="265" y="346" width="38" height="14" rx="7" fill="#79c6bb"/>
+  <rect x="321" y="346" width="38" height="14" rx="7" fill="#79c6bb"/>
+</svg>
