@@ -1,6 +1,7 @@
 import {benefitImpacts,benefitSources} from './benefits.mjs';
 import {defaults,healthRates,contributionTypes,activeContributions,contributionLimits,simulate} from './engine.mjs';
 import {fieldKeys,initialInputs,storageKeys,loadInputs,saveInputs} from './input-state.mjs';
+import {openReport} from './report.mjs';
 const form=document.querySelector('#inputs'),$=id=>document.getElementById(id);
 const fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString('ja-JP'):'—',yen=n=>`${fmt(n)}円`;
 const getStorage=()=>window.localStorage;
@@ -79,6 +80,8 @@ function render(){
  slider.max=max;slider.value=Number.isFinite(personal)?Math.min(max,personal):0;slider.disabled=x.type==='a'||!Number.isFinite(l.personal);$('sliderMax').textContent=yen(max);
  const union=x.health==='union';$('union-fields').hidden=!union;$('prefecture-field').hidden=union;$('region-help').hidden=union;
  const r=simulate(x);$('error').hidden=!r.errors.length;$('valid-results').hidden=!!r.errors.length;
+ $('export-report').disabled=!!r.errors.length;
+ $('report-status').textContent=r.errors.length?'入力エラーを修正すると出力できます。':'';
  if(r.errors.length){$('mobile-savings').textContent='入力を確認';$('error').textContent=r.errors.join(' ');$('rate-description').textContent='入力内容を確認してください。';return;}
  const rr=r.after.social.rates;
  $('rate-description').textContent=`本人負担率：健康保険 ${(rr.healthRate*100).toFixed(3)}％／介護 ${(rr.careRate*100).toFixed(3)}％／支援金 ${(rr.supportRate*100).toFixed(3)}％／厚生年金 9.150％。`;
@@ -121,6 +124,7 @@ form.addEventListener('input',updateInputs);form.addEventListener('change',updat
 form.addEventListener('submit',e=>e.preventDefault());
 form.addEventListener('reset',e=>{e.preventDefault();confirmDefault('reset')});
 $('save-default').addEventListener('click',()=>confirmDefault('save'));
+$('export-report').addEventListener('click',()=>{try{openReport(read());$('report-status').textContent='別画面にA4・2ページの出力イメージを開きました。「PDFに保存・印刷」から保存先を指定してください。';}catch(error){$('report-status').textContent=error.message;}});
 $('contribution-slider').addEventListener('input',e=>{form.elements.personal.value=e.target.value;form.elements.matching.value=e.target.value;});
 presetDescription();
 applyInputs(storedCurrent.values||preset);
