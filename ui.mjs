@@ -6,6 +6,32 @@ const fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString('ja-JP'):'—',yen=
 const getStorage=()=>window.localStorage;
 const storedPreset=loadInputs(getStorage,storageKeys.preset),storedCurrent=loadInputs(getStorage,storageKeys.current);
 let preset=storedPreset.values||{...initialInputs},hasPreset=!!storedPreset.values;
+const defaultDialog=$('default-confirm');
+let confirmedAction=null;
+function confirmDefault(action){
+ if(defaultDialog.open)return;
+ if(action==='save'&&simulate(read()).errors.length){showStatus('入力エラーを修正してから、デフォルトに設定してください。');return;}
+ $('default-confirm-title').textContent=action==='save'?'デフォルト設定の確認':'デフォルト呼び出しの確認';
+ $('default-confirm-message').textContent=action==='save'
+  ?'現在の入力内容をデフォルトに設定します。よろしいですか？'
+  :hasPreset?'現在の入力内容をクリアして、設定されているデフォルトに戻します。よろしいですか？'
+  :'デフォルトが未設定のため、現在の入力内容をクリアして、アプリ共通の初期値に戻します。よろしいですか？';
+ $('default-confirm-note').textContent=action==='save'&&hasPreset?'保存済みのデフォルト設定は上書きされます。':action==='reset'?'保存済みのデフォルト設定は変更しません。':'この端末・ブラウザに設定を保存します。';
+ $('default-confirm-yes').textContent=action==='save'?'Yes（設定する）':'Yes（戻す）';
+ confirmedAction=action;
+ defaultDialog.returnValue='';
+ defaultDialog.showModal();
+}
+defaultDialog.addEventListener('cancel',()=>{confirmedAction=null;});
+defaultDialog.querySelector('form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const action=confirmedAction;confirmedAction=null;
+ const answer=event.submitter?.value||'no';
+ defaultDialog.close(answer);
+ if(answer!=='yes')return;
+ if(action==='save')saveDefault();
+ else if(action==='reset')reset();
+});
 form.elements.type.innerHTML=Object.entries(contributionTypes).map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
 form.elements.prefecture.innerHTML=Object.keys(healthRates).map(p=>`<option>${p}</option>`).join('');
 const typeDescriptions={
@@ -93,8 +119,8 @@ sources.push(['国税庁：小規模企業共済等掛金控除（マッチン�
 $('sources').innerHTML=sources.map(([t,u])=>`<li><a href="${u}" target="_blank" rel="noopener noreferrer">${t}</a></li>`).join('');
 form.addEventListener('input',updateInputs);form.addEventListener('change',updateInputs);
 form.addEventListener('submit',e=>e.preventDefault());
-form.addEventListener('reset',e=>{e.preventDefault();reset()});
-$('save-default').addEventListener('click',saveDefault);
+form.addEventListener('reset',e=>{e.preventDefault();confirmDefault('reset')});
+$('save-default').addEventListener('click',()=>confirmDefault('save'));
 $('contribution-slider').addEventListener('input',e=>{form.elements.personal.value=e.target.value;form.elements.matching.value=e.target.value;});
 presetDescription();
 applyInputs(storedCurrent.values||preset);

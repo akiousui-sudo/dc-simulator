@@ -10,16 +10,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head><body>
+<dialog id="default-confirm" class="confirm-dialog" aria-labelledby="default-confirm-title" aria-describedby="default-confirm-message default-confirm-note">
+<form method="dialog"><h2 id="default-confirm-title"></h2><p id="default-confirm-message"></p><p class="help" id="default-confirm-note"></p><div class="confirm-actions"><button type="submit" value="no" autofocus>No（キャンセル）</button><button type="submit" value="yes" id="default-confirm-yes">Yes</button></div></form>
+</dialog>
 <header><div class="brand"><span class="mark">DC</span><span>企業型DC シミュレーション</span></div><span class="edition">制度・掛金による効果 <b>試用版</b></span></header>
 <main><div class="intro"><div><p class="eyebrow">CONTRIBUTION SIMULATOR</p><h1>掛金と、いま・将来のお金。</h1><p>4つの拠出タイプから、積立額と税金・社会保険の変化を確認できます。</p></div><a class="textlink" href="#assumptions">計算の前提・出典</a></div>
 <div class="workspace"><form id="inputs" novalidate>
-<section class="panel input-settings" aria-labelledby="input-settings-heading">
-<h2 id="input-settings-heading">入力の保存とデフォルト設定</h2>
-<p class="help">地域・給与などを、ご自身のデフォルトとして保存できます。入力は自動保存され、拠出タイプを切り替えても保持されます。</p>
-<div class="settings-actions"><button type="button" id="save-default">現在の入力をデフォルトに設定</button><button type="reset" class="reset">デフォルトに戻す</button></div>
-<p class="help" id="default-description"></p>
+<section class="input-settings" aria-label="デフォルト設定">
+<div class="settings-actions"><button type="button" id="save-default">デフォルト設定</button><button type="reset" class="reset">デフォルトに戻す</button></div>
 <p class="storage-status" id="input-status" role="status" aria-live="polite"></p>
-<details><summary>入力内容の保存について</summary><p class="help">この端末・ブラウザに保存します。サーバーには送信しません。他の端末・ブラウザやLINE内ブラウザとは共有されません。ブラウザのデータ削除やプライベートモードなどで、保存内容が失われることがあります。共用端末では、給与などの入力内容が残ることにご注意ください。</p></details>
+<details><summary>入力内容の保存について</summary><p class="help" id="default-description"></p><p class="help">地域・給与などを、ご自身のデフォルトとして保存できます。通常の入力は自動保存され、拠出タイプを切り替えても保持されます。</p><p class="help">この端末・ブラウザに保存します。サーバーには送信しません。他の端末・ブラウザやLINE内ブラウザとは共有されません。ブラウザのデータ削除やプライベートモードなどで、保存内容が失われることがあります。共用端末では、給与などの入力内容が残ることにご注意ください。</p></details>
 </section>
 <section class="panel"><div class="section-title"><span>01</span><h2>プランと掛金</h2></div>
 <label>加入プラン<select name="plan"><option value="forche">forche</option><option value="sbi">SBIいろどり年金</option></select></label>
