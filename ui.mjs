@@ -1,7 +1,8 @@
 import {benefitImpacts,benefitSources} from './benefits.mjs';
 import {defaults,healthRates,contributionTypes,activeContributions,contributionLimits,simulate} from './engine.mjs';
 import {fieldKeys,initialInputs,storageKeys,loadInputs,saveInputs} from './input-state.mjs';
-import {openReport} from './report.mjs';
+import {openReport} from './report.mjs?v=20260918-rates';
+import {rateNotice} from './rate-info.mjs?v=20260918-rates';
 const form=document.querySelector('#inputs'),$=id=>document.getElementById(id);
 const fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString('ja-JP'):'—',yen=n=>`${fmt(n)}円`;
 const getStorage=()=>window.localStorage;
@@ -67,6 +68,9 @@ function updateInputs(event){
 }
 function afterLabel(x){return x.type==='am'?'マッチング拠出あり':x.type==='a'?'Aタイプ（会社拠出のみ）':'選択制拠出あり';}
 function render(){
+ const rateOpen=$('rate-edition').querySelector('details')?.open;
+ $('rate-edition').innerHTML=rateNotice({health:form.elements.health.value});
+ if(rateOpen)$('rate-edition').querySelector('details').open=true;
  const x=read(),l=contributionLimits(x),matching=x.type==='am',selective=['b','ab'].includes(x.type);
  for(const [key,visible]of [['company',x.type!=='b'],['personal',selective],['matching',matching]]){
   $(key+'-field').hidden=!visible;form.elements[key].disabled=!visible;
