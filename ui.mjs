@@ -1,7 +1,7 @@
 import {benefitImpacts,benefitSources} from './benefits.mjs';
-import {defaults,healthRates,contributionTypes,activeContributions,contributionLimits,simulate} from './engine.mjs';
+import {defaults,healthRates,contributionTypes,activeContributions,contributionLimits,simulate} from './engine.mjs?v=20260918-totals';
 import {fieldKeys,initialInputs,storageKeys,loadInputs,saveInputs} from './input-state.mjs';
-import {openReport} from './report.mjs?v=20260918-rates';
+import {openReport} from './report.mjs?v=20260918-totals';
 import {rateNotice} from './rate-info.mjs?v=20260918-rates';
 const form=document.querySelector('#inputs'),$=id=>document.getElementById(id);
 const fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString('ja-JP'):'—',yen=n=>`${fmt(n)}円`;
@@ -91,6 +91,8 @@ function render(){
  $('rate-description').textContent=`本人負担率：健康保険 ${(rr.healthRate*100).toFixed(3)}％／介護 ${(rr.careRate*100).toFixed(3)}％／支援金 ${(rr.supportRate*100).toFixed(3)}％／厚生年金 9.150％。`;
  $('savings').textContent=fmt(r.savings);$('mobile-savings').textContent=yen(r.savings);
  $('monthly-savings').textContent=`1か月あたり ${yen(r.savings/12)} の軽減目安${r.savings<0?'（マイナスは負担増）':''}`;
+ $('total-savings').textContent=fmt(r.totalSavings);
+ $('total-savings-note').textContent=`${x.age}歳から${x.endAge}歳まで・${r.months/12}年間の単純累計${r.totalSavings<0?'（マイナスは負担増）':''}`;
  for(const k of ['tax','resident','social'])$(k).textContent=yen(r[k]);
  $('saving-bar').innerHTML=[r.tax,r.resident,r.social].map(n=>`<span style="width:${r.savings>0?Math.max(0,n)/r.savings*100:0}%"></span>`).join('');
  $('matching-deduction').textContent=yen(r.after.matchingDeduction)+'／年';
@@ -106,6 +108,8 @@ function render(){
  $('pension').textContent=fmt(r.pensionAnnualLoss);
  $('pension-description').textContent=selective?'終了年齢まで選択制拠出を続けた場合の、報酬比例部分の減額目安':'このタイプでは給与・標準報酬月額を減らさないため、拠出による老齢厚生年金の減額はありません。';
  $('pension-monthly').textContent=`年金月額の減少目安 ${yen(r.pensionMonthlyLoss)}。対象期間 ${x.endAge-x.age}年間。`;
+ $('pension-lifetime-male').textContent=yen(r.pensionLifetimeLossMale);
+ $('pension-lifetime-female').textContent=yen(r.pensionLifetimeLossFemale);
  renderBenefits(x,r);
  $('comparison-after-label').textContent=afterLabel(x);
  $('comparison-description').textContent=x.type==='a'?'Aタイプには本人拠出がないため、両列は同じです。会社拠出は積立元本に加算しています。':`本人拠出なしと、${matching?'マッチング':'選択制'}拠出ありを比較。会社拠出はどちらにも同額あり、給与に含めません。`;
@@ -122,7 +126,7 @@ function renderBenefits(x,r){
 }
 $('benefit-sources').innerHTML=benefitSources.map(([t,u])=>`<li><a href="${u}" target="_blank" rel="noopener noreferrer">${t}</a></li>`).join('');
 const sources=[['厚生労働省：企業型DCの上限・2026年12月改正','https://www.mhlw.go.jp/stf/nenkin_shikumi_015.html'],['国税庁：2026年分の給与所得・所得税の計算','https://www.nta.go.jp/publication/pamph/koho/kurashi/html/02_1.htm'],['国税庁：基礎控除','https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1199.htm'],['全国健康保険協会：2026年度の都道府県別料率・介護・支援金','https://www.kyoukaikenpo.or.jp/about/business/insurance_rate/rate_prefectures/r08/'],['厚生労働省：2026年度の雇用保険料率','https://www.mhlw.go.jp/content/001692566.pdf'],['日本年金機構：報酬比例部分','https://www.nenkin.go.jp/service/yougo/hagyo/hoshuhirei.html'],['厚生労働省：厚生年金の標準報酬上限改定','https://www.mhlw.go.jp/stf/nenkin_shikumi_002.html'],['日本年金機構：随時改定','https://www.nenkin.go.jp/service/kounen/hokenryo/hoshu/20150515-02.html'],['墨田区：2027年度住民税の給与所得控除','https://www.city.sumida.lg.jp/kurashi/zeikin/zeisei_kaisei/r9/kyuuyosyotoku.html'],['forche：公開されている制度設計','https://forche401k.com/cn-forche/plan/'],['DC推進協会：SBIいろどり年金の旧公開資料（2025年5月版）','https://deco-pa.com/pdf/202505SBIgoannai.pdf']];
-sources.push(['国税庁：小規模企業共済等掛金控除（マッチング掛金）','https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1135.htm'],['厚生労働省：マッチング拠出の額の制限撤廃（2026年4月）','https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/nenkin/nenkin/kyoshutsu/2025kaisei.html'],['SBI証券：選択制とマッチングの給与・社会保険の違い','https://ad401k.sbisec.co.jp/corporate/howto/selectivedc/']);
+sources.push(['厚生労働省：令和6年簡易生命表・65歳時の平均余命','https://www.mhlw.go.jp/toukei/saikin/hw/life/life24/dl/life24-02.pdf'],['国税庁：小規模企業共済等掛金控除（マッチング掛金）','https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1135.htm'],['厚生労働省：マッチング拠出の額の制限撤廃（2026年4月）','https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/nenkin/nenkin/kyoshutsu/2025kaisei.html'],['SBI証券：選択制とマッチングの給与・社会保険の違い','https://ad401k.sbisec.co.jp/corporate/howto/selectivedc/']);
 $('sources').innerHTML=sources.map(([t,u])=>`<li><a href="${u}" target="_blank" rel="noopener noreferrer">${t}</a></li>`).join('');
 form.addEventListener('input',updateInputs);form.addEventListener('change',updateInputs);
 form.addEventListener('submit',e=>e.preventDefault());
