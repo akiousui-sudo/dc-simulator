@@ -1,7 +1,7 @@
 import {benefitImpacts,benefitSources} from './benefits.mjs';
-import {defaults,healthRates,contributionTypes,activeContributions,contributionLimits,simulate} from './engine.mjs?v=20260918-totals';
+import {defaults,healthRates,contributionTypes,activeContributions,contributionLimits,simulate} from './engine.mjs?v=20260919-type-labels';
 import {fieldKeys,initialInputs,storageKeys,loadInputs,saveInputs} from './input-state.mjs';
-import {openReport} from './report.mjs?v=20260918-totals';
+import {openReport} from './report.mjs?v=20260919-type-labels';
 import {rateNotice} from './rate-info.mjs?v=20260918-rates';
 const form=document.querySelector('#inputs'),$=id=>document.getElementById(id);
 const fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString('ja-JP'):'—',yen=n=>`${fmt(n)}円`;

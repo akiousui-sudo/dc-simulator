@@ -7,7 +7,7 @@ export const healthRates=Object.fromEntries('北海道:10.28 青森県:9.85 岩�
 export const bounds=[0,63000,73000,83000,93000,101000,107000,114000,122000,130000,138000,146000,155000,165000,175000,185000,195000,210000,230000,250000,270000,290000,310000,330000,350000,370000,395000,425000,455000,485000,515000,545000,575000,605000,635000,665000,695000,730000,770000,810000,855000,905000,955000,1005000,1055000,1115000,1175000,1235000,1295000,1355000];
 export const standards=[58000,68000,78000,88000,98000,104000,110000,118000,126000,134000,142000,150000,160000,170000,180000,190000,200000,220000,240000,260000,280000,300000,320000,340000,360000,380000,410000,440000,470000,500000,530000,560000,590000,620000,650000,680000,710000,750000,790000,830000,880000,930000,980000,1030000,1090000,1150000,1210000,1270000,1330000,1390000];
 export const defaults={type:'ab',matching:10000,plan:'forche',month:'2026-12',salary:300000,commute:10000,company:10000,personal:10000,db:0,age:30,endAge:65,health:'kyouka',prefecture:'東京都',healthEmployeeRate:4.925,careEmployeeRate:0.81,supportEmployeeRate:0.115,employment:'general',bonus1:0,bonus2:0,incomeDeduction:0,residentDeduction:0};
-export const contributionTypes={a:'① Aタイプ（会社拠出のみ）',am:'② A＋マッチング',b:'③ Bタイプ（選択制）',ab:'④ A＋Bタイプ'};
+export const contributionTypes={a:'Aタイプ（会社拠出のみ）',am:'A＋マッチング',b:'Bタイプ（選択制）',ab:'A＋Bタイプ'};
 // Ignore amounts belonging to another type, including cached values in hidden UI controls.
 export function activeContributions(x){return {...x,company:x.type==='b'?0:x.company,personal:['b','ab'].includes(x.type)?x.personal:0,matching:x.type==='am'?x.matching:0};}
 export function standardPay(pay){let i=bounds.findLastIndex(n=>pay>=n);return standards[i];}

@@ -1,4 +1,4 @@
-import {activeContributions,simulate,plans,contributionTypes,modelVersion} from './engine.mjs?v=20260918-totals';
+import {activeContributions,simulate,plans,contributionTypes,modelVersion} from './engine.mjs?v=20260919-type-labels';
 import {benefitImpacts} from './benefits.mjs';
 import {rateNotice} from './rate-info.mjs?v=20260918-rates';
 
@@ -13,7 +13,7 @@ export function buildReport(input,{date=new Date()}={}){
  if(r.errors.length)throw new Error(r.errors.join(' '));
  const selective=['b','ab'].includes(x.type),matching=x.type==='am',hasPersonal=x.type!=='a';
  const after=matching?'マッチング拠出あり':selective?'選択制拠出あり':'会社拠出のみ';
- const name=contributionTypes[x.type].replace(/^[①②③④] /,'');
+ const name=contributionTypes[x.type];
  const stamp=date.toLocaleDateString('ja-JP');
  const before=r.before,a=r.after,personal=x.personal+x.matching;
  const insurance=x.health==='kyouka'?`協会けんぽ ${x.prefecture}`:`組合健保等（健保${x.healthEmployeeRate}％・介護${x.careEmployeeRate}％・支援金${x.supportEmployeeRate}％／本人負担率）`;
