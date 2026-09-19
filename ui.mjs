@@ -6,6 +6,10 @@ import {rateNotice} from './rate-info.mjs?v=20260918-rates';
 const form=document.querySelector('#inputs'),$=id=>document.getElementById(id);
 const fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString('ja-JP'):'—',yen=n=>`${fmt(n)}円`;
 const getStorage=()=>window.localStorage;
+const planNames={forche:'forche',sbi:'SBIいろどり年金'};
+const urlParams=new URLSearchParams(window.location.search),fixedValue=(urlParams.get('fixed')||'').toLowerCase();
+const fixedRequested=['1','true'].includes(fixedValue),requestedPlan=(urlParams.get('plan')||'').toLowerCase(),requestedType=(urlParams.get('type')||'').toLowerCase();
+const fixedConfig=fixedRequested&&Object.hasOwn(planNames,requestedPlan)&&Object.hasOwn(contributionTypes,requestedType)?{plan:requestedPlan,type:requestedType}:null;
 const storedPreset=loadInputs(getStorage,storageKeys.preset),storedCurrent=loadInputs(getStorage,storageKeys.current);
 let preset=storedPreset.values||{...initialInputs},hasPreset=!!storedPreset.values;
 const defaultDialog=$('default-confirm');
@@ -42,9 +46,33 @@ const typeDescriptions={
  b:'給与の一部を本人がDCに振り分けます。会社拠出はなく、給与の減額が税・保険料・給付に影響します。',
  ab:'会社が給与とは別に拠出し、本人も給与の一部をDCに振り分けます。給与の減額は本人の選択制分だけです。'
 };
-function read(){return activeContributions({...defaults,...Object.fromEntries(fieldKeys.map(k=>[k,typeof defaults[k]==='number'?(form.elements[k].value.trim()===''?NaN:Number(form.elements[k].value)):form.elements[k].value]))});}
+function enforceFixedConfig(){
+ if(!fixedConfig)return;
+ form.elements.plan.value=fixedConfig.plan;form.elements.type.value=fixedConfig.type;
+}
+function configureFixedDisplay(){
+ const box=$('fixed-config');
+ if(fixedConfig){
+  enforceFixedConfig();
+  $('plan-select-field').hidden=true;$('type-select-field').hidden=true;
+  form.elements.plan.disabled=true;form.elements.type.disabled=true;
+  box.hidden=false;box.classList.remove('fixed-config-warning');
+  $('fixed-config-label').textContent='導入済み設定';
+  $('fixed-config-value').innerHTML=`<span>加入プラン：${planNames[fixedConfig.plan]}</span><span>拠出タイプ：${contributionTypes[fixedConfig.type]}</span>`;
+  $('fixed-config-note').textContent='加入プランと拠出タイプは、この企業用URLで固定されています。';
+ }else if(fixedRequested){
+  box.hidden=false;box.classList.add('fixed-config-warning');
+  $('fixed-config-label').textContent='URLの固定指定を確認してください';
+  $('fixed-config-value').textContent='加入プランまたは拠出タイプの指定が正しくありません。';
+  $('fixed-config-note').textContent='plan=forche または sbi、type=a・am・b・ab のいずれかを指定してください。';
+ }
+}
+function read(){
+ const values={...defaults,...Object.fromEntries(fieldKeys.map(k=>[k,typeof defaults[k]==='number'?(form.elements[k].value.trim()===''?NaN:Number(form.elements[k].value)):form.elements[k].value]))};
+ return activeContributions(fixedConfig?{...values,...fixedConfig}:values);
+}
 function rawInputs(){return Object.fromEntries(fieldKeys.map(k=>[k,form.elements[k].value]));}
-function applyInputs(values){for(const k of fieldKeys)form.elements[k].value=values[k];render();}
+function applyInputs(values){for(const k of fieldKeys)form.elements[k].value=values[k];enforceFixedConfig();render();}
 function showStatus(message){$('input-status').textContent=message;$('input-status-bottom').textContent=message;}
 function presetDescription(){ $('default-description').textContent=hasPreset?'「デフォルトに戻す」で、ご自身が保存した設定に戻ります。':'デフォルトは未設定です。「デフォルトに戻す」でアプリ共通の初期値に戻ります。'; }
 function persistCurrent(){
@@ -62,6 +90,7 @@ function saveDefault(){
 }
 function updateInputs(event){
  const name=event.target.name;
+ if(fixedConfig&&['plan','type'].includes(name)){enforceFixedConfig();render();return;}
  if(name==='personal')form.elements.matching.value=form.elements.personal.value;
  if(name==='matching')form.elements.personal.value=form.elements.matching.value;
  render();persistCurrent();
@@ -135,6 +164,7 @@ $('save-default').addEventListener('click',()=>confirmDefault('save'));
 $('export-report').addEventListener('click',()=>{try{openReport(read());$('report-status').textContent='別画面にA4・2ページの出力イメージを開きました。「PDFに保存・印刷」から保存先を指定してください。';}catch(error){$('report-status').textContent=error.message;}});
 $('contribution-slider').addEventListener('input',e=>{form.elements.personal.value=e.target.value;form.elements.matching.value=e.target.value;});
 presetDescription();
+configureFixedDisplay();
 applyInputs(storedCurrent.values||preset);
 if([storedCurrent.status,storedPreset.status].includes('unavailable'))showStatus('このブラウザに保存できません。入力はこの画面を開いている間だけ保持されます。');
 else if([storedCurrent.status,storedPreset.status].includes('invalid'))showStatus('保存データの一部を読み込めませんでした。入力内容をご確認ください。');
